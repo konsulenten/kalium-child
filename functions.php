@@ -862,24 +862,63 @@ function hrtb_portfolio_back_link_url( $post_id = 0 ) {
     // 3) default
     return $base;
 }
-
 /**
- * Adjacent navigation: if user filtered on archive, constrain
- * prev/next to that taxonomy term; otherwise traverse all.
+ * Adjacent navigation within selected archive filter term (hash/cookie).
+ * - If user came from /arkitektur/#<slug>, constrain prev/next to that <slug>.
+ * - If no filter in cookie, traverse all items (default behaviour).
  */
-function hrtb_get_adjacent_in_context( $previous = true ) {
-    $taxonomy      = 'portfolio_category';
-    $has_filter    = ! empty( $_COOKIE['hrtb_portfolio_hash'] );
-    $in_same_term  = false;
-    $excluded      = '';
+function hrtb_get_adjacent_portfolio( $previous = true ) {
+	$taxonomy    = 'portfolio_category';
+	$current_id  = get_the_ID();
+	$filter_slug = hrtb_get_archive_filter_slug(); // from earlier helper
 
-    if ( $has_filter ) {
-        // Constrain within taxonomy
-        $in_same_term = true;
-        // (We don't need $excluded here — leave empty)
-    }
+	// No filter context → traverse all (keep your old behaviour)
+	if ( ! $filter_slug ) {
+		return get_adjacent_post( false, '', $previous, $taxonomy );
+	}
 
-    return get_adjacent_post( $in_same_term, $excluded, $previous, $taxonomy );
+	// Constrain strictly to the selected term (not "any shared term")
+	$term = get_term_by( 'slug', $filter_slug, $taxonomy );
+	if ( ! $term || is_wp_error( $term ) ) {
+		return get_adjacent_post( false, '', $previous, $taxonomy );
+	}
+
+	// Build ordered list of posts in that exact term.
+	// Order: menu_order ASC, then date DESC (mirrors common portfolio grids).
+	$q = new WP_Query( array(
+		'post_type'           => 'portfolio',
+		'post_status'         => 'publish',
+		'posts_per_page'      => -1,
+		'fields'              => 'ids',
+		'orderby'             => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'ignore_sticky_posts' => true,
+		'no_found_rows'       => true,
+		'tax_query'           => array(
+			array(
+				'taxonomy' => $taxonomy,
+				'field'    => 'term_id',
+				'terms'    => (int) $term->term_id,
+			),
+		),
+	) );
+
+	if ( empty( $q->posts ) ) {
+		return null;
+	}
+
+	$list = $q->posts; // array of IDs in display order
+	$idx  = array_search( $current_id, $list, true );
+
+	if ( $idx === false ) {
+		// If current post isn't in the filtered list, fall back to default.
+		return get_adjacent_post( false, '', $previous, $taxonomy );
+	}
+
+	$target_idx = $previous ? $idx - 1 : $idx + 1;
+
+	if ( $target_idx < 0 || $target_idx >= count( $list ) ) {
+		return null; // no prev/next in this term
+	}
+
+	return get_post( $list[ $target_idx ] );
 }
-
-// Remove Kalium’s default portfolio navigation

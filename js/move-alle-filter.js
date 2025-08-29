@@ -1,128 +1,147 @@
-document.addEventListener("DOMContentLoaded", function() {
-    // Original functionality - move "Alle" filter to end
+// move-alle-filter.js  — archive hash + filter sync for /arkitektur/
+(function () {
+  // Only run on the archive
+  function onArchive() {
+    return location.pathname.endsWith('/arkitektur/');
+  }
+
+  // ---- Cookie helper (read/write) ----
+  function setFilterCookie(slug) {
+    if (slug) {
+      document.cookie = 'hrtb_portfolio_hash=' + encodeURIComponent(slug) + '; Max-Age=1800; Path=/';
+    } else {
+      document.cookie = 'hrtb_portfolio_hash=; Max-Age=0; Path=/';
+    }
+  }
+
+  // ---- Move "Alle" to end (once DOM exists) ----
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!onArchive()) return;
     var ul = document.querySelector('.portfolio-filters__terms');
     if (!ul) return;
     var alle = ul.querySelector('.portfolio-filters__term--reset');
-    if (alle) ul.appendChild(alle); // Move to end
+    if (alle) ul.appendChild(alle); // move reset/Alle last
+  });
 
-    // Wait for Elementor to load, then add hash functionality
-    function initHashHandling() {
-        // Try both possible selectors for filters
-        let filterButtons = document.querySelectorAll('.elementor-portfolio__filter');
-        
-        if (filterButtons.length === 0) {
-            // Try alternative selectors
-            filterButtons = document.querySelectorAll('.portfolio-filters__term');
-        }
-        
-        console.log('Found filter buttons:', filterButtons.length);
-        
-        if (filterButtons.length === 0) {
-            // Retry in 500ms if no buttons found
-            setTimeout(initHashHandling, 500);
-            return;
-        }
-        
-        // Add hash to URL when filter is clicked (but don't interfere with filtering)
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Small delay to let Elementor handle the filtering first
-                setTimeout(() => {
-                    const filterText = this.textContent.toLowerCase().trim();
-                    console.log('Filter clicked, updating hash:', filterText);
-                    
-                    // Update URL hash based on filter
-                    if (filterText !== 'alle') {
-                        const slug = filterText.replace(/\s+/g, '-');
-                        window.history.replaceState(null, null, '#' + slug);
-                    } else {
-                        // Remove hash for "Alle"
-                        window.history.replaceState(null, null, window.location.pathname);
-                    }
-                }, 100);
-            });
-        });
-        
-        // Restore filter from hash on page load
-        const hash = window.location.hash;
-        if (hash && hash.length > 1) {
-            const filterSlug = hash.substring(1);
-            console.log('Restoring filter:', filterSlug);
-            
-            setTimeout(() => {
-                filterButtons.forEach(button => {
-                    const buttonText = button.textContent.toLowerCase().trim().replace(/\s+/g, '-');
-                    if (buttonText === filterSlug) {
-                        console.log('Found matching filter button, clicking:', buttonText);
-                        
-                        // Let Elementor handle the filtering
-                        button.click();
-                        
-                        // Ensure the button gets the active class
-                        setTimeout(() => {
-                            filterButtons.forEach(b => {
-                                b.classList.remove('elementor-active');
-                                b.classList.remove('active');
-                            });
-                            button.classList.add('elementor-active');
-                        }, 50);
-                    }
-                });
-            }, 500); // Longer delay for page load restoration
-        }
+  // ---- Apply a hash filter by simulating a real click on its <a> ----
+  function applyHashFilterFromLocation() {
+    if (!onArchive()) return;
+    var h = (location.hash || '').replace(/^#/, '');
+    // Normalize
+    if (!h || h === '*' || h.toLowerCase() === 'alle') {
+      // Clear any server-side default active (often "utvalgte")
+      document.querySelectorAll('.portfolio-filters__term--active,.elementor-active,.active')
+        .forEach(function (el) { el.classList.remove('portfolio-filters__term--active', 'elementor-active', 'active'); });
+      // Clear persisted context
+      setFilterCookie('');
+      sessionStorage.removeItem('hrtb_portfolio_hash');
+      // Keep clean URL (no hash)
+      history.replaceState(null, '', location.pathname);
+      return;
     }
-    
-    // Try multiple times to catch Elementor loading
-    setTimeout(initHashHandling, 100);
-    setTimeout(initHashHandling, 1000);
-    setTimeout(initHashHandling, 2000);
-});
 
-(function () {
-    // Helper to set cookie for PHP side (30 minutes)
-    function setFilterCookie(slug) {
-      if (slug) {
-        document.cookie = 'hrtb_portfolio_hash=' + encodeURIComponent(slug) + '; Max-Age=1800; Path=/';
-      } else {
-        document.cookie = 'hrtb_portfolio_hash=; Max-Age=0; Path=/';
-      }
+    var slug = h.toLowerCase();
+
+    // 1) Clear default active state set by server (e.g., Utvalg/utvalgte)
+    document.querySelectorAll('.portfolio-filters__terms .portfolio-filters__term--active')
+      .forEach(function (li) { li.classList.remove('portfolio-filters__term--active'); });
+
+    // 2) Find exact anchor by data-term (most reliable)
+    var link = document.querySelector('[data-term="portfolio_category:' + slug + '"]');
+
+    // Fallback: match by text → slug if data-term is missing
+    if (!link) {
+      var anchors = document.querySelectorAll('.portfolio-filters__terms a, .elementor-portfolio__filter');
+      link = Array.prototype.find.call(anchors, function (a) {
+        return (a.textContent || '').toLowerCase().trim().replace(/\s+/g, '-') === slug;
+      });
     }
-  
-    // Capture clicks on category filters (Elementor or Kalium)
-    document.addEventListener('click', function (e) {
-      const a = e.target.closest('.portfolio-filters__terms a, .elementor-portfolio__filter');
-      if (!a) return;
-  
-      // Prefer data-term like "portfolio_category:plan"
-      const dt = a.getAttribute('data-term') || '';
-      let slug = '';
-      const m = dt.match(/portfolio_category:([\w-]+)/);
-      if (m && m[1]) {
-        slug = m[1].toLowerCase();
-      } else {
-        const txt = (a.textContent || '').toLowerCase().trim();
-        if (txt && txt !== 'alle') slug = txt.replace(/\s+/g, '-');
-      }
-  
+
+    if (link) {
       // Persist for PHP & single page
-      if (slug) {
-        sessionStorage.setItem('hrtb_portfolio_hash', slug);
-        setFilterCookie(slug);
-        // Keep URL as /arkitektur/#slug (no /kategori/… path)
-        history.replaceState(null, '', '#'+slug);
-      } else {
-        sessionStorage.removeItem('hrtb_portfolio_hash');
-        setFilterCookie('');
-        history.replaceState(null, '', window.location.pathname.replace(/\/kategori\/[^/]+\/?$/,''));
-      }
-    }, true);
-  
-    // On archive load without hash, force “Alle” active (avoid default “utvalgte”)
-    document.addEventListener('DOMContentLoaded', function () {
-      if (location.pathname.endsWith('/arkitektur/') && !location.hash) {
-        // If theme bootstraps with "current: utvalgte", neutralize it by virtually clicking "Alle"
-        const reset = document.querySelector('.portfolio-filters__term--reset a,[data-term="portfolio_category:*"]');
-        if (reset) setTimeout(() => reset.click(), 50);
-      }
-    });
-  })();
+      setFilterCookie(slug);
+      sessionStorage.setItem('hrtb_portfolio_hash', slug);
+
+      // 3) Trigger the real filter by clicking the <a> (not the <li>)
+      // Delay lightly so widgets are fully ready
+      setTimeout(function () {
+        link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        var li = link.closest('.portfolio-filters__term');
+        if (li) li.classList.add('portfolio-filters__term--active');
+        history.replaceState(null, '', '#' + slug); // keep tidy hash
+      }, 50);
+    }
+  }
+
+  // ---- Capture user clicks to keep URL + cookie/session in sync ----
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('.portfolio-filters__terms a, .elementor-portfolio__filter');
+    if (!a || !onArchive()) return;
+
+    // Prefer data-term like "portfolio_category:plan"
+    var dt = a.getAttribute('data-term') || '';
+    var slug = '';
+    var m = dt.match(/portfolio_category:([\w-]+)/);
+    if (m && m[1]) {
+      slug = m[1].toLowerCase();
+    } else {
+      var txt = (a.textContent || '').toLowerCase().trim();
+      if (txt && txt !== 'alle') slug = txt.replace(/\s+/g, '-');
+    }
+
+    if (slug) {
+      sessionStorage.setItem('hrtb_portfolio_hash', slug);
+      setFilterCookie(slug);
+      // Keep URL as /arkitektur/#slug (no /kategori/… path)
+      history.replaceState(null, '', '#'+slug);
+    } else {
+      // "Alle"
+      sessionStorage.removeItem('hrtb_portfolio_hash');
+      setFilterCookie('');
+      history.replaceState(null, '', location.pathname.replace(/\/kategori\/[^/]+\/?$/,''));
+    }
+  }, true);
+
+  // ---- Neutralize default "utvalgte" when no hash on first load ----
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!onArchive()) return;
+    if (!location.hash) {
+      // Click reset /*or*/ send event the widget listens to
+      var reset = document.querySelector('.portfolio-filters__term--reset a,[data-term="portfolio_category:*"]');
+      if (reset) setTimeout(function () { reset.click(); }, 50);
+    }
+  });
+
+  // ---- Sync on load, BFCache restore, and hash change ----
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!onArchive()) return;
+    // Initial apply (in case we landed with a hash like #plan)
+    setTimeout(applyHashFilterFromLocation, 0);
+  });
+
+  window.addEventListener('pageshow', function () {
+    if (!onArchive()) return;
+    // BFCache restores (back button) can re-activate server default — re-apply
+    setTimeout(applyHashFilterFromLocation, 0);
+  });
+
+  window.addEventListener('hashchange', function () {
+    if (!onArchive()) return;
+    applyHashFilterFromLocation();
+  });
+
+  // ---- Optional: listen to Kalium portfolio event if emitted ----
+  document.addEventListener('kaliumPortfolioFiltered', function () {
+    if (!onArchive()) return;
+    // Keep cookie/session aligned with current hash after internal changes
+    var h = (location.hash || '').replace(/^#/, '');
+    if (h && h !== '*' && h.toLowerCase() !== 'alle') {
+      var slug = h.toLowerCase().split('|')[0].split(':').pop().split(',')[0].split('+')[0];
+      sessionStorage.setItem('hrtb_portfolio_hash', slug);
+      setFilterCookie(slug);
+    } else {
+      sessionStorage.removeItem('hrtb_portfolio_hash');
+      setFilterCookie('');
+    }
+  });
+})();
