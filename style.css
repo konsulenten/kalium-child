@@ -1,0 +1,997 @@
+/*
+Theme Name: Kalium - Child Theme
+Theme URI: https://kaliumtheme.com
+Author: Laborator
+Author URI: https://laborator.co
+Description: Start creating that amazing website that you have always wanted, only with Kalium &mdash; Connect with Laborator on: <a href="https://twitter.com/thelaborator">Twitter X</a> &bull; <a href="https://www.facebook.com/laboratorcreative">Facebook</a> &bull; <a href="https://www.instagram.com/laboratorcreative">Instagram</a>
+Requires PHP: 7.2
+Version: 1.0
+License: GNU General Public License version 3.0
+License URI: http://www.gnu.org/licenses/gpl-3.0.html
+Template: kalium
+Text Domain: kalium
+*/
+
+.elementor {
+    margin-inline: 0 !important;
+}
+
+
+.kalium-icon-arrow-corner-right:before {
+    content: "\e918";
+}
+
+.kalium-icon-arrow-corner-right {
+    font-size: 2em;
+    line-height: 2;
+}
+
+.kalium-icon-arrow-corner-left {
+    font-size: 2em;
+    line-height: 2;
+}
+
+
+.single-portfolio__content {
+    background-color: transparent !important;
+    background-image: linear-gradient(180deg, #0000003B 0%, #000000 100%);
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5);
+    color: #fff !important;
+}
+.single-portfolio__content-toggle .h3 {
+    color: #fff !important;
+}
+
+.single-portfolio__title h1 {
+    color: #fff !important;
+}
+
+
+
+.site-header .header-block {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: transparent !important;
+}
+@media (min-width: 769px) {
+    .header-block--align-right>.header-block__items-row { 
+        justify-content: center; 
+        margin-right: 83px;
+    }
+}
+
+   .elementor-widget-portfolio .elementor-portfolio.elementor-has-item-ratio .elementor-post__thumbnail,
+        .elementor-widget-portfolio .elementor-portfolio.elementor-has-item-ratio .elementor-post__thumbnail img {
+            position: relative;
+            top: auto;
+            bottom: auto;
+            left: auto;
+            transform: none;
+            min-width: 100%;
+        }
+        .elementor-widget-portfolio .elementor-portfolio-item__overlay {
+            position: relative;
+            opacity: 1;
+            top: auto;
+            bottom: auto;
+            padding: 15px 0;
+            text-align: left;
+            background-color: transparent;
+        }
+        .elementor-widget-portfolio .elementor-portfolio-item__title {
+            color: #333;
+            padding-bottom: 15px;
+        }
+
+        .elementor-widget-portfolio .more {
+            font-weight: bold;
+            text-decoration: underline !important;
+        }
+        .elementor-widget-heading .elementor-heading-title {
+          margin-top: 25px;
+          margin-bottom: 20px;
+        }
+
+ /* ================================
+   Note styling for text in parentheses
+   ================================ */
+
+        .elementor-portfolio-item__title .note {
+          color: #666; /* Gray color */
+          font-style: italic;
+          font-weight: 400; /* Lighter weight than the main title */
+          font-size: 0.9em; /* Slightly smaller */
+      }
+      
+      /* Optional: Different styling on hover */
+      .elementor-portfolio-item:hover .elementor-portfolio-item__title .note {
+          color: #666;
+      }
+
+/* ========================================================
+   Ansatt Popup Layout (cleaned and unified styles)
+   ======================================================== */
+
+.elementor-popup-modal .dialog-widget-content {
+width: 100%;
+}
+
+.elementor-10040 .elementor-element {
+  justify-content: center;
+
+}
+
+.elementor-popup-modal .dialog-message {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.elementor-location-popup .elementor-container {
+  margin: 0 auto;
+}
+
+.elementor-location-popup .ansatt-popup-content {
+  /* padding: 40px; */
+  /* max-width: 1200px; */
+  margin: 0 auto;
+}
+
+.elementor-popup-modal .dialog-close-button svg {
+    /* fill: #1f2124; */
+    height: 2em;
+    width: 2em;
+}
+
+.ansatt-inner {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  /* gap: 60px; */
+}
+
+/* Fullscreen image alignment */
+.ansatt-left {
+  flex: 0 0 45%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+.ansatt-left img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  display: block;
+  position: relative;
+  z-index: 100;
+}
+/* Wrapper for linje med knapper */
+.ansatt-divider-with-buttons {
+  position: relative;
+  margin: 30px 0 40px;
+}
+
+.ansatt-divider-with-buttons hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.ansatt-divider-with-buttons .ansatt-buttons {
+  display: flex;
+  justify-content: start;
+  gap: 16px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 2;
+  /* background: #fff; */
+  padding: 0;
+}
+
+/* Knappestil */
+.ansatt-buttons a {
+  border: 1px solid #ccc;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-size: 16px;
+  color: #000;
+  text-decoration: none;
+  background: #fff;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+
+
+/* Mobiljustering */
+@media (max-width: 768px) {
+  .ansatt-divider-with-buttons .ansatt-buttons {
+    position: static;
+    transform: none;
+    margin-top: 16px;
+  }
+}
+
+/* Horisontal linje */
+.ansatt-divider {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 20px 0 30px;
+  width: 100%;
+}
+
+/* Responsivt */
+@media (max-width: 768px) {
+  .ansatt-inner {
+    flex-direction: column;
+  }
+  .ansatt-left {
+    margin: 0;
+    max-width: 100%;
+  }
+  .ansatt-buttons {
+    justify-content: center;
+  }
+}
+
+.ansatt-right {
+  flex: 1 1 60%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Horisontal strek mellom kontaktinfo og biotekst */
+.ansatt-right .ansatt-meta {
+  /* border-bottom: 1px solid #ccc; */
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+
+.ansatt-meta {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  color: #222;
+}
+.ansatt-meta p {
+  margin: 6px 0;
+}
+.ansatt-meta p.role {
+  margin: 6px 0;
+}
+.ansatt-meta p.tel, .ansatt-meta p.mail {
+  margin: 6px 0;
+}
+
+.ansatt-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #444;
+}
+
+.ansatt-meta a {
+  display: inline-block;
+  padding: 8px 18px;
+  margin-right: 10px;
+  border: 1px solid #aaa;
+  border-radius: 999px;
+  background: white;
+  color: black;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .ansatt-inner {
+    flex-direction: column;
+  }
+  .ansatt-left, .ansatt-right {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
+/* ================================
+   Ansatt - Kort / Portfolio view
+   ================================ */
+   #ansatt-overlay {
+    padding-block-start: 0;
+    padding-block-end: 0;
+   }
+   #elementor-popup-modal-9232 .dialog-widget-content {
+  background-color: #fff;
+
+   }
+
+.elementor-portfolio-item:hover {
+  cursor: pointer;
+}
+
+
+ .elementor-portfolio-item__overlay {
+  background-color: rgba(0, 0, 0, 0); /* transparent */
+  bottom: 0;
+  box-sizing: border-box;
+  color: rgb(51, 51, 51);
+  display: flex;
+  flex-direction: column;
+  font-family: news-gothic-std, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  /* height: 63px; */
+  justify-content: center;
+  left: 0;
+  line-height: 20px;
+  opacity: 1;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  padding-bottom: 15px;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 15px;
+  position: relative;
+  right: 0;
+  text-align: left;
+  width: 100%;
+  transition-behavior: normal;
+  transition-delay: 0s;
+  transition-duration: 1s;
+  transition-property: opacity;
+  transition-timing-function: ease;
+  unicode-bidi: isolate;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+.elementor-portfolio-item__overlay:hover {
+text-decoration: underline;
+}
+
+.ansatt-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ansatt-card-title h3 {
+  font-size: 22px;
+  margin: 0;
+  font-weight: 700;
+  color: #222;
+}
+
+.ansatt-card-meta {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.5;
+}
+.ansatt-card-meta p {
+  margin: 2px 0;
+}
+.ansatt-card-meta p.epost a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.ansatt-card-meta + .les-mer {
+  margin-top: 12px;
+  font-size: 15px;
+}
+
+.ansatt-card-meta + .les-mer a {
+  color: #000;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+.ansatt-card-meta + .les-mer a span {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+.ansatt-card-meta + .les-mer a:hover span {
+  transform: translateX(2px);
+}
+
+@media screen and (max-width: 768px) {
+  .elementor-portfolio-item__overlay {
+    padding: 16px;
+  }
+
+  .ansatt-card-title h3 {
+    font-size: 18px;
+  }
+
+  .ansatt-card-meta {
+    font-size: 14px;
+  }
+}
+
+
+/* Fjerner padding rundt hele popup og sørger for 100% bredde */
+.elementor-popup-modal .dialog-message,
+.elementor-location-popup .elementor-container,
+.elementor-location-popup .elementor-widget-container {
+  padding: 0 !important;
+  margin: 0 auto;
+  max-width: none !important;
+}
+
+/* Hovedlayout for popup */
+.ansatt-popup-content {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  background: #fff;
+  max-width: 1200px;
+}
+
+/* Bildeside */
+.ansatt-left {
+  margin: 0;
+  padding: 0;
+  flex: 0 0 45%;
+  max-width: 45%;
+  height: 100%;
+}
+.ansatt-left img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+}
+
+/* Høyre side med info */
+.ansatt-right {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: #fff;
+}
+
+
+.ansatt-meta {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+.ansatt-divider-with-buttons {
+  position: relative;
+  margin: 30px 0 40px;
+}
+
+.ansatt-divider-with-buttons::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -50px;
+  right: 0;
+  height: 1px;
+  background: #ccc;
+  z-index: 1;
+}
+.ansatt-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+  z-index: 2;
+  padding: 0 12px;
+  background: #fff;
+}
+.ansatt-buttons a {
+  border: 1px solid #ccc;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-size: 16px;
+  color: #000;
+  text-decoration: none;
+  transition: background 0.2s ease;
+  background: white;
+}
+
+/* Tekstblokk */
+.ansatt-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #444;
+}
+
+/* Responsivt */
+@media (max-width: 768px) {
+  .ansatt-popup-content {
+    flex-direction: column;
+  }
+  .ansatt-left,
+  .ansatt-right {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+  .ansatt-left {
+    height: auto;
+  }
+  .ansatt-buttons {
+    justify-content: center;
+  }
+}
+
+.elementor-popup-modal .dialog-message {
+  height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Full høyde på popup */
+.elementor-popup-modal .dialog-message {
+  height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Bildet skal dekke topp, bunn og venstre */
+.ansatt-left {
+  flex: 0 0 40%;
+  max-width: 450px;
+  margin: 0;
+}
+.ansatt-left img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+}
+
+/* Divider med knapper over */
+.ansatt-divider-container {
+  position: relative;
+  margin: 40px 0;
+}
+
+.ansatt-divider-container hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 0;
+  position: absolute;
+  left: -100vw;
+  right: -100vw;
+  top: 50%;
+  z-index: 0;
+}
+
+/* Knapper sentrert over linje */
+.ansatt-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  padding: 0 12px;
+}
+
+/* Knappeutseende */
+.ansatt-buttons a {
+  border: 1px solid #ccc;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-size: 16px;
+  color: #000;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+.ansatt-buttons a:hover {
+  background-color: #f2f2f2;
+}
+
+
+.elementor-portfolio-item {
+    display: flex;
+    flex-direction: column;
+}
+  
+  /* .ansatt-card-meta {
+    min-height: 120px; 
+  } */
+  
+  .les-mer {
+    margin-top: auto; /* skyv link nederst */
+  }
+
+
+   @media (max-width: 768px) {
+    .elementor-portfolio .elementor-portfolio-item {
+      /* width: 100% !important; */
+      /* margin-bottom: 32px; */
+    } 
+  
+    .elementor-portfolio-item__overlay {
+      padding: 0 !important;
+      padding-top: 16px;
+      margin-top: 20px;
+    }
+  
+    .ansatt-card-title h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+  
+    .ansatt-card-meta {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #222;
+    }
+  
+    .ansatt-card-meta + .les-mer {
+      margin-top: 10px;
+    }
+  
+    .ansatt-card-meta + .les-mer a {
+      font-size: 14px;
+      text-decoration: none;
+    }
+  }
+
+  /* ================================
+   Mobiltilpasning – Overlay popup
+   ================================ */
+@media (max-width: 768px) {
+  .ansatt-popup-content {
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+  }
+  .ansatt-left {
+    width: 100%;
+    margin: 32px auto 0 auto;
+    flex: none;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .ansatt-left img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto;
+  }
+  .ansatt-right {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px 0 24px 0;
+    margin: 0 auto;
+    align-items: center;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ansatt-meta {
+    font-size: 15px;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+  }
+  .ansatt-divider-with-buttons {
+    margin: 12px 0 14px 0;
+    position: relative;
+    width: 100%;
+    /* max-width: 420px; */
+  }
+  .ansatt-divider-with-buttons hr {
+    display: none; /* Hide divider line on mobile */
+  }
+  .ansatt-divider-with-buttons .ansatt-buttons {
+    position: static;
+    transform: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    background: none;
+    padding: 0;
+  }
+  .ansatt-buttons a {
+    padding: 8px 22px;
+    font-size: 16px;
+    border-radius: 20px;
+    font-weight: 500;
+    background-color: #fff;
+    z-index: 100;
+  }
+  .ansatt-text {
+    font-size: 15px;
+    line-height: 1.7;
+    text-align: left;
+    margin-top: 10px;
+    margin-bottom: 0;
+    padding: 0 0 0 0;
+  }
+}
+
+/* Force full-viewport width/height background for first Elementor section */
+.elementor-10 > .elementor-element-b1bf76e {
+  width: 100vw !important;
+  min-height: 100vh !important;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  position: relative;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  box-sizing: border-box;
+  padding: 0 !important;
+}
+
+/* Remove constraints from outer wrappers */
+.content-wrapper.container-full,
+.entry-content.link-style.container-child,
+.elementor-10 {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Remove max-width for .e-con-inner if present */
+/* .elementor-10 .e-con-inner {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+} */
+.elementor-section.elementor-section-boxed > .elementor-container,
+.elementor .elementor-container {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+
+
+/* === Front page header/image adjustments (home only) === */
+
+/* 1. Header overlays the image, transparent, and logo hidden */
+body.home .site-header {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  background: transparent !important;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+/* Default: logo follows menu color */
+.site-header {
+  --logo-color: var(--k-link-color, currentColor);
+}
+
+/* When menu or header is hovered: follow menu hover color */
+/* .site-header:hover {
+  --logo-color: var(--k-link-hover-color, currentColor);
+} */
+
+/* Apply to SVG paths/polygons */
+.header-logo .site-logo * {
+  fill: var(--logo-color);
+}
+
+
+.header-logo .site-logo {
+  opacity: 1;
+  filter: none;
+  mix-blend-mode: normal;
+}
+
+
+
+/* 2. First Elementor background section (image) goes fully behind header */
+body.home .elementor-10 > .elementor-element-b1bf76e {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  min-height: 100vh !important;
+}
+
+body:not(.home) .site-header {
+  position: relative !important;
+  background: #fff !important;
+  z-index: 100;
+}
+
+.site-header--sticky-spacer{
+  display: none !important;
+} 
+
+
+p.filter a {
+  font-size: 16px;
+  color: rgb(51,51,51);
+  text-decoration: none;
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  margin: 0 17px 0 0;
+  padding: 0;
+  line-height: 1.1;
+}
+p.filter a:hover {
+  color: rgb(122,122,122);
+}
+
+
+.elementor-portfolio__filters,
+.portfolio-filters__terms, .portfolio-filters .portfolio-filters__terms {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  z-index: 100;
+  /* margin-bottom: 37px; */
+  text-transform:lowercase !important;
+}
+
+.elementor-portfolio__filters,
+.portfolio-filters__terms {
+  margin-bottom: 37px; 
+}
+.elementor-portfolio__filters .elementor-portfolio__filter {
+position: relative;
+display: inline-block;
+font-size: 16px;
+font-weight: 400;
+color: rgb(51,51,51);
+background: none;
+border: none;
+cursor: pointer;
+margin: 0 17px 0 0;
+padding: 0;
+line-height: 1.1;
+user-select: none;
+transition: color 0.25s cubic-bezier(.445,.05,.55,.95);
+}
+.elementor-portfolio__filters .elementor-portfolio__filter:last-child {
+margin-right: 0;
+}
+.elementor-portfolio__filters .elementor-portfolio__filter:hover {
+color: rgb(122,122,122);
+}
+
+.elementor-portfolio__filter:after {
+content: "";
+display: block;
+position: absolute;
+left: 0; right: 0;
+bottom: -.5px;
+height: 1px;
+width: 100%;
+background: rgb(122,122,122);
+opacity: 0;
+transform: scaleX(0);
+transform-origin: left;
+transition: transform 0.3s cubic-bezier(.445,.05,.55,.95), opacity 0.2s, background 0.2s;
+pointer-events: none;
+}
+.elementor-portfolio__filter:hover:after,
+.elementor-portfolio__filter.elementor-active:after {
+opacity: 1;
+transform: scaleX(1);
+background: rgb(122,122,122);
+}
+
+
+@media (max-width: 768px) {
+  p.filter a {
+    font-size: 15px;
+    margin: 0 5px 0 0;
+
+  }
+}
+
+
+
+* ================================
+   Masonry Layout Fixes
+   ================================ */
+
+/* Ensure consistent item width for masonry */
+.elementor-portfolio.masonry-container {
+    position: relative;
+}
+
+.elementor-portfolio.masonry-container .elementor-portfolio-item {
+    width: 25% !important; /* Force 4 columns */
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    padding: 0 10px; /* Add some spacing between items */
+}
+
+/* Ensure images maintain aspect ratio */
+.elementor-portfolio-item__img {
+    position: relative;
+    overflow: hidden;
+}
+
+.elementor-portfolio-item__img img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+/* Force minimum height for content area */
+.elementor-portfolio-item__overlay {
+    min-height: 60px;
+}
+
+.ansatt-card-meta {
+    min-height: 100px; /* Ensure consistent content height */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1199px) {
+    .elementor-portfolio.masonry-container .elementor-portfolio-item {
+        width: 33.333% !important; /* 3 columns on medium screens */
+    }
+}
+
+@media (max-width: 767px) {
+    .elementor-portfolio.masonry-container .elementor-portfolio-item {
+        width: 50% !important; /* 2 columns on small screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .elementor-portfolio.masonry-container .elementor-portfolio-item {
+        width: 100% !important; /* 1 column on mobile */
+    }
+}
+
+/* Remove any conflicting absolute positioning */
+.elementor-portfolio.masonry-container .elementor-portfolio-item {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+}
+
+/* Unngå horisontal scrolling */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Sikre at alle elementer ikke stikker ut */
+* {
+  box-sizing: border-box;
+  max-width: 100vw;
+  word-wrap: break-word;
+}
