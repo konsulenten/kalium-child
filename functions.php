@@ -816,109 +816,128 @@ function remove_default_portfolio_filter($options) {
     return $options;
 }
 
-/**
- * Primary term helper (Yoast → first term → null)
- */
-function hrtb_get_primary_portfolio_category( $post_id = 0 ) {
-    $post_id  = $post_id ?: get_the_ID();
-    $taxonomy = 'portfolio_category';
+// ---------- PORTFOLIO NAV HELPERS (child) ----------
 
-    if ( class_exists( 'WPSEO_Primary_Term' ) ) {
-        $primary = new WPSEO_Primary_Term( $taxonomy, $post_id );
-        $term_id = $primary->get_primary_term();
-        if ( $term_id && ! is_wp_error( $term_id ) ) {
-            $term = get_term( (int) $term_id, $taxonomy );
-            if ( $term && ! is_wp_error( $term ) ) {
-                return $term;
-            }
-        }
-    }
+// Yoast Primary Term (fallback to first term)
+if ( ! function_exists( 'hrtb_get_primary_portfolio_category' ) ) {
+	function hrtb_get_primary_portfolio_category( $post_id = 0 ) {
+		$post_id  = $post_id ?: get_the_ID();
+		$taxonomy = 'portfolio_category';
 
-    $terms = get_the_terms( $post_id, $taxonomy );
-    return ( is_array( $terms ) && ! empty( $terms ) ) ? array_shift( $terms ) : null;
+		if ( class_exists( 'WPSEO_Primary_Term' ) ) {
+			$primary = new WPSEO_Primary_Term( $taxonomy, $post_id );
+			$term_id = (int) $primary->get_primary_term();
+			if ( $term_id && ! is_wp_error( $term_id ) ) {
+				$term = get_term( $term_id, $taxonomy );
+				if ( $term && ! is_wp_error( $term ) ) {
+					return $term;
+				}
+			}
+		}
+
+		$terms = get_the_terms( $post_id, $taxonomy );
+		return ( is_array( $terms ) && $terms ) ? array_values( $terms )[0] : null;
+	}
 }
 
-/**
- * Persist/read the last archive filter (from cookie) to build back link.
- * If user came from a filtered archive (/arkitektur/#plan), return that.
- * Else fall back to primary category hash, else plain /arkitektur/.
- */
-function hrtb_portfolio_back_link_url( $post_id = 0 ) {
-    $base = home_url( '/arkitektur/' );
+// Context slug priority: ?ctx=<slug> → cookie → Yoast primary → first term
+if ( ! function_exists( 'hrtb_portfolio_context_slug' ) ) {
+	function hrtb_portfolio_context_slug( $post_id = 0 ) {
+		$taxonomy = 'portfolio_category';
+		$post_id  = $post_id ?: get_the_ID();
 
-    // 1) last used filter from archive (set by JS below)
-    $slug = isset( $_COOKIE['hrtb_portfolio_hash'] ) ? sanitize_title( $_COOKIE['hrtb_portfolio_hash'] ) : '';
+		// 1) URL param (survives prev/next)
+		if ( isset( $_GET['ctx'] ) ) {
+			$slug = sanitize_title( wp_unslash( $_GET['ctx'] ) );
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				return $term->slug;
+			}
+		}
 
-    if ( $slug ) {
-        return trailingslashit( $base ) . '#' . $slug;
-    }
+		// 2) Cookie from archive click
+		if ( ! empty( $_COOKIE['hrtb_portfolio_hash'] ) ) {
+			$slug = sanitize_title( wp_unslash( $_COOKIE['hrtb_portfolio_hash'] ) );
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				return $term->slug;
+			}
+		}
 
-    // 2) Yoast primary (or first) term
-    $term = hrtb_get_primary_portfolio_category( $post_id );
-    if ( $term ) {
-        return trailingslashit( $base ) . '#' . $term->slug;
-    }
+		// 3) Yoast primary (or first)
+		if ( function_exists( 'hrtb_get_primary_portfolio_category' ) ) {
+			$term = hrtb_get_primary_portfolio_category( $post_id );
+			if ( $term && ! is_wp_error( $term ) ) {
+				return $term->slug;
+			}
+		}
 
-    // 3) default
-    return $base;
+		$terms = get_the_terms( $post_id, $taxonomy );
+		return ( is_array( $terms ) && $terms ) ? array_values( $terms )[0]->slug : '';
+	}
 }
-/**
- * Adjacent navigation within selected archive filter term (hash/cookie).
- * - If user came from /arkitektur/#<slug>, constrain prev/next to that <slug>.
- * - If no filter in cookie, traverse all items (default behaviour).
- */
-function hrtb_get_adjacent_portfolio( $previous = true ) {
-	$taxonomy    = 'portfolio_category';
-	$current_id  = get_the_ID();
-	$filter_slug = hrtb_get_archive_filter_slug(); // from earlier helper
 
-	// No filter context → traverse all (keep your old behaviour)
-	if ( ! $filter_slug ) {
-		return get_adjacent_post( false, '', $previous, $taxonomy );
+// Back to archive URL: /arkitektur/#<ctx> (or plain /arkitektur/)
+if ( ! function_exists( 'hrtb_portfolio_back_link_url' ) ) {
+	function hrtb_portfolio_back_link_url( $post_id = 0 ) {
+		$base = home_url( '/arkitektur/' );
+		$ctx  = hrtb_portfolio_context_slug( $post_id ?: get_the_ID() );
+		return $ctx ? ( $base . '#' . $ctx ) : $base;
 	}
+}
 
-	// Constrain strictly to the selected term (not "any shared term")
-	$term = get_term_by( 'slug', $filter_slug, $taxonomy );
-	if ( ! $term || is_wp_error( $term ) ) {
-		return get_adjacent_post( false, '', $previous, $taxonomy );
-	}
+// Adjacent strictly within selected context term; else traverse all
+if ( ! function_exists( 'hrtb_get_adjacent_portfolio' ) ) {
+	function hrtb_get_adjacent_portfolio( $previous = true ) {
+		$taxonomy   = 'portfolio_category';
+		$current_id = get_the_ID();
+		$slug       = hrtb_portfolio_context_slug( $current_id );
 
-	// Build ordered list of posts in that exact term.
-	// Order: menu_order ASC, then date DESC (mirrors common portfolio grids).
-	$q = new WP_Query( array(
-		'post_type'           => 'portfolio',
-		'post_status'         => 'publish',
-		'posts_per_page'      => -1,
-		'fields'              => 'ids',
-		'orderby'             => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
-		'ignore_sticky_posts' => true,
-		'no_found_rows'       => true,
-		'tax_query'           => array(
-			array(
-				'taxonomy' => $taxonomy,
-				'field'    => 'term_id',
-				'terms'    => (int) $term->term_id,
+		// No context → default (all items)
+		if ( ! $slug ) {
+			return get_adjacent_post( false, '', $previous, $taxonomy );
+		}
+
+		$term = get_term_by( 'slug', $slug, $taxonomy );
+		if ( ! $term || is_wp_error( $term ) ) {
+			return get_adjacent_post( false, '', $previous, $taxonomy );
+		}
+
+		// Build ordered list in that exact term (adjust order to match your grid if needed)
+		$q = new WP_Query( array(
+			'post_type'           => 'portfolio',
+			'post_status'         => 'publish',
+			'fields'              => 'ids',
+			'posts_per_page'      => -1,
+			'orderby'             => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+			'tax_query'           => array(
+				array(
+					'taxonomy' => $taxonomy,
+					'field'    => 'term_id',
+					'terms'    => (int) $term->term_id,
+				),
 			),
-		),
-	) );
+		) );
 
-	if ( empty( $q->posts ) ) {
-		return null;
+		if ( empty( $q->posts ) ) {
+			return null;
+		}
+
+		$list = $q->posts;                // IDs in order
+		$idx  = array_search( $current_id, $list, true );
+
+		if ( $idx === false ) {
+			// If current not in list (edge-case): fall back to default
+			return get_adjacent_post( false, '', $previous, $taxonomy );
+		}
+
+		$target = $previous ? $idx - 1 : $idx + 1;
+		if ( $target < 0 || $target >= count( $list ) ) {
+			return null;
+		}
+
+		return get_post( $list[ $target ] );
 	}
-
-	$list = $q->posts; // array of IDs in display order
-	$idx  = array_search( $current_id, $list, true );
-
-	if ( $idx === false ) {
-		// If current post isn't in the filtered list, fall back to default.
-		return get_adjacent_post( false, '', $previous, $taxonomy );
-	}
-
-	$target_idx = $previous ? $idx - 1 : $idx + 1;
-
-	if ( $target_idx < 0 || $target_idx >= count( $list ) ) {
-		return null; // no prev/next in this term
-	}
-
-	return get_post( $list[ $target_idx ] );
 }
