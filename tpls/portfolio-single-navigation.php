@@ -9,6 +9,7 @@ $prev = function_exists('hrtb_get_adjacent_portfolio') ? hrtb_get_adjacent_portf
 $next = function_exists('hrtb_get_adjacent_portfolio') ? hrtb_get_adjacent_portfolio( false ) : null;
 $back = function_exists('hrtb_portfolio_back_link_url') ? hrtb_portfolio_back_link_url( get_the_ID() ) : home_url( '/arkitektur/' );
 
+// Always carry ctx on prev/next if we have it
 $prev_url = $prev ? get_permalink( $prev ) : '';
 $next_url = $next ? get_permalink( $next ) : '';
 if ( $ctx ) {
@@ -21,23 +22,17 @@ if ( $ctx ) {
 		<ul class="post-navigation__list">
 			<li class="post-navigation__item post-navigation__item--prev">
 				<?php if ( $prev_url ) : ?>
-					<a href="<?php echo esc_url( $prev_url ); ?>" class="post-navigation__link post-navigation__link--prev post-navigation__link--icon-type-1">
-						<span class="post-navigation__link-icon"></span>
-					</a>
+					<a href="<?php echo esc_url( $prev_url ); ?>" class="post-navigation__link post-navigation__link--prev post-navigation__link--icon-type-1"><span class="post-navigation__link-icon"></span></a>
 				<?php endif; ?>
 			</li>
-
 			<li class="post-navigation__item post-navigation__item--back-to-archive">
 				<a href="<?php echo esc_url( $back ); ?>" class="back-to-archive back-to-archive--boxes-2" aria-label="Back to Archive">
 					<span class="back-to-archive__boxes" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
 				</a>
 			</li>
-
 			<li class="post-navigation__item post-navigation__item--next">
 				<?php if ( $next_url ) : ?>
-					<a href="<?php echo esc_url( $next_url ); ?>" class="post-navigation__link post-navigation__link--next post-navigation__link--icon-type-1">
-						<span class="post-navigation__link-icon"></span>
-					</a>
+					<a href="<?php echo esc_url( $next_url ); ?>" class="post-navigation__link post-navigation__link--next post-navigation__link--icon-type-1"><span class="post-navigation__link-icon"></span></a>
 				<?php endif; ?>
 			</li>
 		</ul>

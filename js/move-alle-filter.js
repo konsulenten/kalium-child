@@ -23,55 +23,70 @@
     if (alle) ul.appendChild(alle); // move reset/Alle last
   });
 
-  // ---- Apply a hash filter by simulating a real click on its <a> ----
-  function applyHashFilterFromLocation() {
-    if (!onArchive()) return;
-    var h = (location.hash || '').replace(/^#/, '');
-    // Normalize
-    if (!h || h === '*' || h.toLowerCase() === 'alle') {
-      // Clear any server-side default active (often "utvalgte")
-      document.querySelectorAll('.portfolio-filters__term--active,.elementor-active,.active')
-        .forEach(function (el) { el.classList.remove('portfolio-filters__term--active', 'elementor-active', 'active'); });
-      // Clear persisted context
-      setFilterCookie('');
+  // After your on-archive DOMContentLoaded check where you neutralize defaults:
+document.addEventListener('DOMContentLoaded', function () {
+  if (location.pathname.endsWith('/arkitektur/')) {
+    if (!location.hash) {
+      // mark explicit "unfiltered archive" context
+      document.cookie = 'hrtb_portfolio_hash=ALL; Max-Age=1800; Path=/';
       sessionStorage.removeItem('hrtb_portfolio_hash');
-      // Keep clean URL (no hash)
-      history.replaceState(null, '', location.pathname);
-      return;
-    }
-
-    var slug = h.toLowerCase();
-
-    // 1) Clear default active state set by server (e.g., Utvalg/utvalgte)
-    document.querySelectorAll('.portfolio-filters__terms .portfolio-filters__term--active')
-      .forEach(function (li) { li.classList.remove('portfolio-filters__term--active'); });
-
-    // 2) Find exact anchor by data-term (most reliable)
-    var link = document.querySelector('[data-term="portfolio_category:' + slug + '"]');
-
-    // Fallback: match by text → slug if data-term is missing
-    if (!link) {
-      var anchors = document.querySelectorAll('.portfolio-filters__terms a, .elementor-portfolio__filter');
-      link = Array.prototype.find.call(anchors, function (a) {
-        return (a.textContent || '').toLowerCase().trim().replace(/\s+/g, '-') === slug;
-      });
-    }
-
-    if (link) {
-      // Persist for PHP & single page
-      setFilterCookie(slug);
-      sessionStorage.setItem('hrtb_portfolio_hash', slug);
-
-      // 3) Trigger the real filter by clicking the <a> (not the <li>)
-      // Delay lightly so widgets are fully ready
-      setTimeout(function () {
-        link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-        var li = link.closest('.portfolio-filters__term');
-        if (li) li.classList.add('portfolio-filters__term--active');
-        history.replaceState(null, '', '#' + slug); // keep tidy hash
-      }, 50);
+      // (your existing "click reset" shim can remain)
     }
   }
+});
+
+// ---- Apply a hash filter by simulating a real click on its <a> ----
+function applyHashFilterFromLocation() {
+  if (!onArchive()) return;
+  var h = (location.hash || '').replace(/^#/, '');
+
+  // Normalize: no hash or "alle" → mark unfiltered archive (ALL)
+  if (!h || h === '*' || h.toLowerCase() === 'alle') {
+    // Clear any server-side default active (often "utvalgte")
+    document.querySelectorAll('.portfolio-filters__term--active,.elementor-active,.active')
+      .forEach(function (el) { el.classList.remove('portfolio-filters__term--active', 'elementor-active', 'active'); });
+
+    // Persist explicit "unfiltered archive" context
+    document.cookie = 'hrtb_portfolio_hash=ALL; Max-Age=1800; Path=/';
+    sessionStorage.removeItem('hrtb_portfolio_hash');
+
+    // Keep clean URL (no hash)
+    history.replaceState(null, '', location.pathname);
+    return;
+  }
+
+  var slug = h.toLowerCase();
+
+  // 1) Clear default active state set by server (e.g., Utvalg/utvalgte)
+  document.querySelectorAll('.portfolio-filters__terms .portfolio-filters__term--active')
+    .forEach(function (li) { li.classList.remove('portfolio-filters__term--active'); });
+
+  // 2) Find exact anchor by data-term (most reliable)
+  var link = document.querySelector('[data-term="portfolio_category:' + slug + '"]');
+
+  // Fallback: match by text → slug if data-term is missing
+  if (!link) {
+    var anchors = document.querySelectorAll('.portfolio-filters__terms a, .elementor-portfolio__filter');
+    link = Array.prototype.find.call(anchors, function (a) {
+      return (a.textContent || '').toLowerCase().trim().replace(/\s+/g, '-') === slug;
+    });
+  }
+
+  if (link) {
+    // Persist for PHP & single page
+    document.cookie = 'hrtb_portfolio_hash=' + encodeURIComponent(slug) + '; Max-Age=1800; Path=/';
+    sessionStorage.setItem('hrtb_portfolio_hash', slug);
+
+    // 3) Trigger the real filter by clicking the <a> (not the <li>)
+    // Delay lightly so widgets are fully ready
+    setTimeout(function () {
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      var li = link.closest('.portfolio-filters__term');
+      if (li) li.classList.add('portfolio-filters__term--active');
+      history.replaceState(null, '', '#' + slug); // keep tidy hash
+    }, 50);
+  }
+}
 
   // ---- Capture user clicks to keep URL + cookie/session in sync ----
   document.addEventListener('click', function (e) {
@@ -90,15 +105,15 @@
     }
 
     if (slug) {
+      // filtered → remember the slug (e.g., plan)
       sessionStorage.setItem('hrtb_portfolio_hash', slug);
-      setFilterCookie(slug);
-      // Keep URL as /arkitektur/#slug (no /kategori/… path)
+      document.cookie = 'hrtb_portfolio_hash=' + encodeURIComponent(slug) + '; Max-Age=1800; Path=/';
       history.replaceState(null, '', '#'+slug);
     } else {
-      // "Alle"
+      // "Alle" → mark unfiltered
       sessionStorage.removeItem('hrtb_portfolio_hash');
-      setFilterCookie('');
-      history.replaceState(null, '', location.pathname.replace(/\/kategori\/[^/]+\/?$/,''));
+      document.cookie = 'hrtb_portfolio_hash=ALL; Max-Age=1800; Path=/';
+      history.replaceState(null, '', window.location.pathname.replace(/\/kategori\/[^/]+\/?$/,''));
     }
   }, true);
 

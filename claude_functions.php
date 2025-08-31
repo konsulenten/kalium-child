@@ -598,10 +598,6 @@ function set_category_canonical_url() {
 }
 add_action('wp_head', 'set_category_canonical_url', 1);
 
-
-
-
-
 /**
  * Portfolio Navigation Fix - Working with Hash-based Filtering
  * Replace the navigation-related functions in your functions.php with this code
@@ -820,7 +816,6 @@ function remove_default_portfolio_filter($options) {
     return $options;
 }
 
-
 // ---------- PORTFOLIO NAV HELPERS (child) ----------
 
 // Yoast Primary Term (fallback to first term)
@@ -845,22 +840,15 @@ if ( ! function_exists( 'hrtb_get_primary_portfolio_category' ) ) {
 	}
 }
 
-/**
- * Strong context resolver for nav.
- * Priority: ?ctx=<slug> → cookie (slug|ALL) → Yoast primary → only-term → first term.
- * Note: cookie value 'ALL' means "came from /arkitektur/ (unfiltered)".
- */
+// Context slug priority: ?ctx=<slug> → cookie → Yoast primary → first term
 if ( ! function_exists( 'hrtb_portfolio_context_slug' ) ) {
 	function hrtb_portfolio_context_slug( $post_id = 0 ) {
 		$taxonomy = 'portfolio_category';
 		$post_id  = $post_id ?: get_the_ID();
 
-		// 1) URL param wins over cookie
+		// 1) URL param (survives prev/next)
 		if ( isset( $_GET['ctx'] ) ) {
 			$slug = sanitize_title( wp_unslash( $_GET['ctx'] ) );
-			if ( $slug === 'all' || $slug === 'alle' ) {
-				return ''; // explicit unfiltered context
-			}
 			$term = get_term_by( 'slug', $slug, $taxonomy );
 			if ( $term && ! is_wp_error( $term ) ) {
 				return $term->slug;
@@ -868,86 +856,55 @@ if ( ! function_exists( 'hrtb_portfolio_context_slug' ) ) {
 		}
 
 		// 2) Cookie from archive click
-		if ( isset( $_COOKIE['hrtb_portfolio_hash'] ) ) {
-			$raw = wp_unslash( $_COOKIE['hrtb_portfolio_hash'] );
-			if ( strtoupper( $raw ) === 'ALL' ) {
-				return ''; // unfiltered archive context
-			}
-			$val = sanitize_title( $raw );
-			if ( $val ) {
-				$term = get_term_by( 'slug', $val, $taxonomy );
-				if ( $term && ! is_wp_error( $term ) ) {
-					return $term->slug;
-				}
+		if ( ! empty( $_COOKIE['hrtb_portfolio_hash'] ) ) {
+			$slug = sanitize_title( wp_unslash( $_COOKIE['hrtb_portfolio_hash'] ) );
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				return $term->slug;
 			}
 		}
 
-		// 3) Yoast primary (if set)
+		// 3) Yoast primary (or first)
 		if ( function_exists( 'hrtb_get_primary_portfolio_category' ) ) {
-			$primary = hrtb_get_primary_portfolio_category( $post_id );
-			if ( $primary && ! is_wp_error( $primary ) ) {
-				return $primary->slug;
+			$term = hrtb_get_primary_portfolio_category( $post_id );
+			if ( $term && ! is_wp_error( $term ) ) {
+				return $term->slug;
 			}
 		}
 
-		// 4) If post has exactly one term, use that
 		$terms = get_the_terms( $post_id, $taxonomy );
-		if ( is_array( $terms ) && count( $terms ) === 1 ) {
-			return $terms[0]->slug;
-		}
-
-		// 5) Fallback to first term (if any)
-		return ( is_array( $terms ) && ! empty( $terms ) ) ? array_values( $terms )[0]->slug : '';
+		return ( is_array( $terms ) && $terms ) ? array_values( $terms )[0]->slug : '';
 	}
 }
 
-/**
- * Back to archive URL:
- * - If ctx slug exists (from ?ctx or cookie/Yoast/etc.) → /arkitektur/#<ctx>
- * - Else if cookie is 'ALL' → /arkitektur/
- * - Else → /arkitektur/
- *
- * IMPORTANT: ?ctx must override cookie 'ALL', so we resolve ctx BEFORE checking 'ALL'.
- */
+// Back to archive URL: /arkitektur/#<ctx> (or plain /arkitektur/)
 if ( ! function_exists( 'hrtb_portfolio_back_link_url' ) ) {
 	function hrtb_portfolio_back_link_url( $post_id = 0 ) {
 		$base = home_url( '/arkitektur/' );
 		$ctx  = hrtb_portfolio_context_slug( $post_id ?: get_the_ID() );
-
-		if ( $ctx ) {
-			return $base . '#' . $ctx;
-		}
-
-		// Only return plain archive for explicit ALL or no context at all
-		return $base;
+		return $ctx ? ( $base . '#' . $ctx ) : $base;
 	}
 }
 
-/**
- * Adjacent strictly within selected context term; else traverse all (for ALL/no ctx).
- * Also wraps around within the term (circular prev/next).
- */
+// Adjacent strictly within selected context term; else traverse all
 if ( ! function_exists( 'hrtb_get_adjacent_portfolio' ) ) {
 	function hrtb_get_adjacent_portfolio( $previous = true ) {
-		$taxonomy   = 'portfolio_category';
-		$current_id = get_the_ID();
-
-		// If ?ctx is present and valid, use it even if cookie is ALL
-		$ctx_from_get = null;
-		if ( isset( $_GET['ctx'] ) ) {
-			$tmp = sanitize_title( wp_unslash( $_GET['ctx'] ) );
-			if ( $tmp && $tmp !== 'all' && $tmp !== 'alle' ) {
-				$ctx_from_get = $tmp;
-			}
-		}
-
-		if ( $ctx_from_get ) {
-			$slug = $ctx_from_get;
-		} else {
-			$slug = hrtb_portfolio_context_slug( $current_id );
-		}
-
-		// No ctx → traverse all
+        $taxonomy    = 'portfolio_category';
+        $current_id  = get_the_ID();
+        $filter_slug = hrtb_get_archive_filter_slug(); // from earlier helper
+    
+        // No filter context → check if post has a single category
+        if ( ! $filter_slug ) {
+            $terms = get_the_terms( $current_id, $taxonomy );
+            if ( $terms && ! is_wp_error( $terms ) && count( $terms ) === 1 ) {
+                // Single category - constrain to it
+                $filter_slug = $terms[0]->slug;
+            } else {
+                // Multiple or no categories - traverse all
+                return get_adjacent_post( false, '', $previous, $taxonomy );
+            }
+        }
+		// No context → default (all items)
 		if ( ! $slug ) {
 			return get_adjacent_post( false, '', $previous, $taxonomy );
 		}
@@ -957,7 +914,7 @@ if ( ! function_exists( 'hrtb_get_adjacent_portfolio' ) ) {
 			return get_adjacent_post( false, '', $previous, $taxonomy );
 		}
 
-		// Build ordered list within that exact term
+		// Build ordered list in that exact term (adjust order to match your grid if needed)
 		$q = new WP_Query( array(
 			'post_type'           => 'portfolio',
 			'post_status'         => 'publish',
@@ -979,19 +936,17 @@ if ( ! function_exists( 'hrtb_get_adjacent_portfolio' ) ) {
 			return null;
 		}
 
-		$list = $q->posts;
+		$list = $q->posts;                // IDs in order
 		$idx  = array_search( $current_id, $list, true );
+
 		if ( $idx === false ) {
-			return null;
+			// If current not in list (edge-case): fall back to default
+			return get_adjacent_post( false, '', $previous, $taxonomy );
 		}
 
-		// Circular wrap
-		$target = $previous ? ($idx - 1) : ($idx + 1);
-		$count  = count( $list );
-		if ( $target < 0 ) {
-			$target = $count - 1; // wrap to last
-		} elseif ( $target >= $count ) {
-			$target = 0;          // wrap to first
+		$target = $previous ? $idx - 1 : $idx + 1;
+		if ( $target < 0 || $target >= count( $list ) ) {
+			return null;
 		}
 
 		return get_post( $list[ $target ] );
